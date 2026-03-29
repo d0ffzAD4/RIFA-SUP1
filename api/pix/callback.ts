@@ -6,6 +6,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Verificação de autenticidade do webhook
+  const secret = req.headers['x-webhook-secret'] || req.query.secret;
+  if (!process.env.WEBHOOK_SECRET || secret !== process.env.WEBHOOK_SECRET) {
+    console.warn('[WEBHOOK] Tentativa não autorizada bloqueada.');
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   try {
     const { transactionId, status, amount, client, identifier } = req.body;
     console.log(`[WEBHOOK] Transaction ${transactionId} (${identifier}): ${status}`);
